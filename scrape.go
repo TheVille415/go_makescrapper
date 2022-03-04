@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"time"
 
 	"github.com/gocolly/colly"
 )
@@ -24,11 +25,12 @@ func createJson(characters []Lucy) {
 func main() {
 	// Instantiate default collector
 	c := colly.NewCollector()
+	c.SetRequestTimeout(120 * time.Second)
 	character := make([]Lucy, 0)
 
 	// On every a element which has href attribute call callback
-	c.OnHTML("table.general", func(e *colly.HTMLElement) {
-		e.ForEach("tr.general-header", func(_ int, e *colly.HTMLElement) {
+	c.OnHTML("table.article-table", func(e *colly.HTMLElement) {
+		e.ForEach("tr", func(_ int, e *colly.HTMLElement) {
 			newInfo := Lucy{}
 			newInfo.Episode = e.ChildText("td")
 			newInfo.Title = e.ChildText("a")
@@ -50,4 +52,6 @@ func main() {
 
 	// Start scraping on https://lucifer.fandom.com/wiki/Episodes
 	c.Visit("https://lucifer.fandom.com/wiki/Episodes")
+
+	createJson(character)
 }
